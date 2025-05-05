@@ -1,3 +1,4 @@
+import axios from 'axios';
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -12,22 +13,51 @@ interface Props {
   navigation: RegisterScreenNavigationProp;
 }
 
+
+const API_URL = 'http://192.168.1.21:8000/api';
+
 const RegisterScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  const [username, setUsername] = useState<string>('');
+  const [name, setName] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleRegister = () => {
-    if (!email || !password || !username) {
+  const handleRegister = async () => {
+    if (!email || !password || !name) {
       Alert.alert('Error', 'Todos los campos son obligatorios');
       return;
     }
-    console.log('Registrando:', { email, username, password });
+
+    setIsLoading(true);
+    
+    try {
+      const response = await axios.post(`${API_URL}/register`, {
+        name: name,
+        email: email,
+        password: password,
+        password_confirmation: password
+      });
+
+      Alert.alert('Éxito', 'Registro completado correctamente');
+      navigation.navigate('Login');
+      
+    } catch (error: unknown) {
+      let errorMessage = 'Error en el registro';
+      if (axios.isAxiosError(error)) {
+        console.log('Error del servidor:', error.response?.data);
+        errorMessage = error.response?.data?.message || 
+                      (error.response?.data?.errors ? 
+                       Object.values(error.response.data.errors).join('\n') : 
+                       'Error desconocido');
+      }
+      Alert.alert('Error', errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <View style={styles.container}>
-      
       <Image 
         source={require('../../assets/images/OIP.jpeg')}
         style={styles.logo}
@@ -47,8 +77,8 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       <TextInput
         style={styles.input}
         placeholder="Usuario"
-        value={username}
-        onChangeText={setUsername}
+        value={name}
+        onChangeText={setName}  // Corregido: setname → setName
         autoCapitalize="none"
       />
       <TextInput
@@ -58,8 +88,14 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         onChangeText={setPassword}
         secureTextEntry
       />
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Registrarme</Text>
+      <TouchableOpacity 
+        style={styles.button} 
+        onPress={handleRegister}
+        disabled={isLoading}
+      >
+        <Text style={styles.buttonText}>
+          {isLoading ? 'Registrando...' : 'Registrarme'}
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => navigation.navigate('Login')}>
         <Text style={styles.link}>¿Ya estás registrado? Inicia sesión</Text>

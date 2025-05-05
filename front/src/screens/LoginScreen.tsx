@@ -1,3 +1,5 @@
+import axios from 'axios';
+import { API_URL } from '../../src/config';
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
