@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '../navigation/types'; // Ruta correcta
+import { RootStackParamList } from '../navigation/types';
 
 type RegisterScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -23,12 +23,17 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
       return;
     }
     console.log('Registrando:', { email, username, password });
-    
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Vaiko</Text>
+      
+      <Image 
+        source={require('../../assets/images/OIP.jpeg')}
+        style={styles.logo}
+        resizeMode="contain"
+      />
+      
       <Text style={styles.subtitle}>¡Crea tu cuenta y empieza a gestionar tu negocio!</Text>
 
       <TextInput
@@ -68,19 +73,20 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: '#322F35',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10,
+  logo: {
+    width: 150,
+    height: 80,
+    alignSelf: 'center',
+    marginBottom: 20,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 22, 
     textAlign: 'center',
     marginBottom: 30,
-    color: '#666',
+    color: '#FFFFFF',
+    fontWeight: '600', 
   },
   input: {
     height: 50,
@@ -89,6 +95,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 15,
     marginBottom: 15,
+    backgroundColor: '#FFFFFF',
   },
   button: {
     backgroundColor: '#007bff',
@@ -100,10 +107,14 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontSize: 16,
   },
   link: {
-    color: '#007bff',
+    color: '#1E90FF', 
     textAlign: 'center',
+    fontSize: 14,
+    textDecorationLine: 'underline', 
+    fontWeight: '600', 
   },
 });
 
