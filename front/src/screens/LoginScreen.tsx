@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 type LoginScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -18,12 +20,33 @@ const LoginScreen: React.FC<Props> = ({ navigation }) => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Todos los campos son obligatorios');
       return;
     }
-    console.log('Iniciando sesión:', { email, password });
+
+    try {
+      console.log(`${API_URL}/api/login`);
+
+      const response = await axios.post(`${API_URL}/api/login`, {
+        email,
+        password,
+      });
+
+      const token = response.data.token;
+
+      // Guardar el token localmente para futuras solicitudes
+      await AsyncStorage.setItem('authToken', token);
+
+      Alert.alert('Éxito', 'Sesión iniciada correctamente');
+      // Puedes navegar a la siguiente pantalla
+      // navigation.navigate('Home'); // ejemplo
+
+    } catch (error) {
+      console.log(error);
+      Alert.alert('Error', 'Credenciales incorrectas o error de red');
+    }
   };
 
   return (
