@@ -22,7 +22,7 @@ interface Props {
 }
 
 const LoginScreen: React.FC<Props> = ({ navigation }) => {
-  const API_URL = 'http://192.168.1.21:8000/api';
+  const API_URL = 'http:/192.168.59.249/8000/api';
   
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');

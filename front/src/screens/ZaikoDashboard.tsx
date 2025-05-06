@@ -119,7 +119,7 @@ const ZaikoDashboard: React.FC<ZaikoDashboardProps> = ({ navigation }) => {
         </View>
       </ScrollView>
 
-      {/* Navbar Inferior Mejorado */}
+     
       <View style={styles.bottomNavbar}>
         <TouchableOpacity 
           style={styles.navButton}
