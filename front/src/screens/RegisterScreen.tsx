@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, ActivityIndicator } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/types';
 
@@ -13,43 +13,84 @@ interface Props {
   navigation: RegisterScreenNavigationProp;
 }
 
-
-const API_URL = 'http://192.168.1.21:8000/api';
-
 const RegisterScreen: React.FC<Props> = ({ navigation }) => {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [name, setName] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  
+  const API_URL = 'http://192.168.1.21:8000/api';
+  
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async () => {
+   
     if (!email || !password || !name) {
       Alert.alert('Error', 'Todos los campos son obligatorios');
       return;
     }
 
-    setIsLoading(true);
     
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      Alert.alert('Error', 'Por favor ingresa un email válido');
+      return;
+    }
+
+   
+    if (password.length < 6) {
+      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
+      console.log('Intentando registrar usuario...'); 
+      
       const response = await axios.post(`${API_URL}/register`, {
-        name: name,
-        email: email,
-        password: password,
+        name,
+        email,
+        password,
         password_confirmation: password
+      }, {
+        timeout: 10000, 
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
       });
 
-      Alert.alert('Éxito', 'Registro completado correctamente');
-      navigation.navigate('Login');
-      
-    } catch (error: unknown) {
-      let errorMessage = 'Error en el registro';
-      if (axios.isAxiosError(error)) {
-        console.log('Error del servidor:', error.response?.data);
-        errorMessage = error.response?.data?.message || 
-                      (error.response?.data?.errors ? 
-                       Object.values(error.response.data.errors).join('\n') : 
-                       'Error desconocido');
+      console.log('Respuesta del servidor:', response.data); 
+
+      if (response.status >= 200 && response.status < 300) {
+        Alert.alert('Éxito', 'Registro completado correctamente');
+        navigation.navigate('Login');
+      } else {
+        throw new Error(response.data.message || 'Error en el registro');
       }
+      
+    } catch (error) {
+      console.error('Error en el registro:', error); 
+      
+      let errorMessage = 'Error al conectar con el servidor';
+      
+      if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNABORTED') {
+          errorMessage = 'El servidor no respondió a tiempo';
+        } else if (error.response) {
+        
+          errorMessage = error.response.data?.message || 
+                       (error.response.data?.errors ? 
+                        Object.values(error.response.data.errors).join('\n') : 
+                        `Error ${error.response.status}`);
+        } else if (error.request) {
+        
+          errorMessage = 'No se pudo conectar al servidor. Verifica tu conexión a internet.';
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
       Alert.alert('Error', errorMessage);
     } finally {
       setIsLoading(false);
@@ -73,36 +114,56 @@ const RegisterScreen: React.FC<Props> = ({ navigation }) => {
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
+        autoCorrect={false}
+        editable={!isLoading}
       />
+      
       <TextInput
         style={styles.input}
-        placeholder="Usuario"
+        placeholder="Nombre de usuario"
         value={name}
-        onChangeText={setName}  // Corregido: setname → setName
+        onChangeText={setName}
         autoCapitalize="none"
+        autoCorrect={false}
+        editable={!isLoading}
       />
+      
       <TextInput
         style={styles.input}
-        placeholder="Contraseña"
+        placeholder="Contraseña (mínimo 6 caracteres)"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        editable={!isLoading}
       />
+
       <TouchableOpacity 
-        style={styles.button} 
+        style={[styles.button, isLoading && styles.disabledButton]} 
         onPress={handleRegister}
         disabled={isLoading}
       >
-        <Text style={styles.buttonText}>
-          {isLoading ? 'Registrando...' : 'Registrarme'}
-        </Text>
+        {isLoading ? (
+          <>
+            <ActivityIndicator color="#fff" />
+            <Text style={styles.buttonText}> Procesando...</Text>
+          </>
+        ) : (
+          <Text style={styles.buttonText}>Registrarme</Text>
+        )}
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+
+      <TouchableOpacity 
+        onPress={() => navigation.navigate('Login')}
+        disabled={isLoading}
+      >
         <Text style={styles.link}>¿Ya estás registrado? Inicia sesión</Text>
       </TouchableOpacity>
     </View>
   );
 };
+
+
+
 
 const styles = StyleSheet.create({
   container: {
@@ -139,6 +200,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginBottom: 20,
+  },
+  disabledButton: {
+    backgroundColor: '#84b8ff',
   },
   buttonText: {
     color: '#fff',
